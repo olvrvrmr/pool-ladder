@@ -5,8 +5,8 @@ import { ClerkProvider } from '@clerk/nextjs'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'Billiards Ladder',
-  description: 'Manage your local billiards club ladder competition',
+  title: 'Border Bar Pool Ladder',
+  description: 'Manage your local pool club ladder competition',
 }
 
 export default function RootLayout({

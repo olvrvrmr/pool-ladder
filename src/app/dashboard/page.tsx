@@ -79,7 +79,7 @@ export default async function Dashboard() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p className="mb-4">Welcome to your Billiards Ladder dashboard, {user?.name}!</p>
+      <p className="mb-4">Welcome to your Border Bar Pool Ladder dashboard, {user?.name}!</p>
       
       {hasActiveChallenge && activeChallenge && (
         <div className="mb-8 p-4 bg-yellow-100 rounded-md">

@@ -38,11 +38,11 @@ export default async function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-24">
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold mb-8 text-center">Billiards Ladder</h1>
+        <h1 className="text-4xl font-bold mb-8 text-center">Border Bar Pool Ladder</h1>
         <div className="mb-8 text-center">
           {userId ? (
             <div>
-              <p className="mb-4">Welcome to the Billiards Ladder, {user?.name}!</p>
+              <p className="mb-4">Welcome to the Border Bar Pool Ladder, {user?.name}!</p>
               <Link href="/dashboard" className="text-blue-500 hover:underline mr-4">
                 Go to Dashboard
               </Link>
@@ -55,7 +55,7 @@ export default async function Home() {
             </div>
           ) : (
             <div>
-              <p className="mb-2">Please sign in to access the Billiards Ladder.</p>
+              <p className="mb-2">Please sign in to access the BBP Ladder.</p>
               <SignInButton mode="modal">
                 <button className="text-blue-500 hover:underline">
                   Sign In
