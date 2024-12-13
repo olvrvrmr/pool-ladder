@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+import { auth} from '@clerk/nextjs/server'
 import { SignInButton, SignOutButton } from '@clerk/nextjs'
 import Link from 'next/link'
 import { PrismaClient } from '@prisma/client'
@@ -6,7 +6,7 @@ import LadderStandings from './components/LadderStandings'
 import ChallengesList from './components/ChallengesList'
 import MatchCalendar from './components/MatchCalendar'
 import { getUserByClerkId, isUserAdmin } from './utils/user'
-import moment from 'moment';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const prisma = new PrismaClient()
 
@@ -48,7 +48,7 @@ async function getScheduledMatches() {
     id: challenge.id,
     title: `${challenge.challenger.name} vs ${challenge.challenged.name}`,
     start: challenge.matchDate!,
-    end: moment(challenge.matchDate).add(1, 'hour').toDate() // Assuming 1 hour duration
+    end: new Date(challenge.matchDate!.getTime() + 60 * 60 * 1000) // Assuming 1 hour duration
   }))
 }
 
@@ -61,56 +61,61 @@ export default async function Home() {
   const isAdmin = userId ? await isUserAdmin(userId) : false
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm">
-        <h1 className="text-4xl font-bold mb-8 text-center">Billiards Ladder</h1>
-        <div className="mb-8 text-center">
-          {userId ? (
-            <div>
-              <p className="mb-4">Welcome to the Billiards Ladder, {user?.name}!</p>
-              <Link href="/dashboard" className="text-blue-500 hover:underline mr-4">
-                Go to Dashboard
-              </Link>
-              {isAdmin && (
-                <Link href="/admin" className="text-blue-500 hover:underline mr-4">
-                  Admin Panel
-                </Link>
-              )}
-              <SignOutButton />
-            </div>
-          ) : (
-            <div>
-              <p className="mb-2">Please sign in to access the Billiards Ladder.</p>
-              <SignInButton mode="modal">
-                <button className="text-blue-500 hover:underline">
-                  Sign In
-                </button>
-              </SignInButton>
-            </div>
-          )}
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Leaderboard</h2>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Billiards Ladder</h1>
+        {userId ? (
+          <div className="flex items-center space-x-4">
+            <span>Welcome, {user?.name}!</span>
+            <SignOutButton>
+              <button className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                Sign Out
+              </button>
+            </SignOutButton>
+          </div>
+        ) : (
+          <SignInButton mode="modal">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+              Sign In
+            </button>
+          </SignInButton>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Leaderboard</CardTitle>
+          </CardHeader>
+          <CardContent>
             <LadderStandings 
               players={players} 
               isHomepage={true}
               isAdmin={false}
               userHasActiveChallenge={false}
             />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-4">All Challenges</h2>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>All Challenges</CardTitle>
+          </CardHeader>
+          <CardContent>
             <ChallengesList challenges={challenges} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-4">Scheduled Matches</h2>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Scheduled Matches</CardTitle>
+          </CardHeader>
+          <CardContent>
             <MatchCalendar initialMatches={scheduledMatches} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
-    </main>
+    </div>
   )
 }
 

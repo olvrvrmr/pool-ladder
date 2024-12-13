@@ -32,7 +32,7 @@ export default function ChallengeManagement({ challenges, onUpdateStatus, onSubm
   const [challengerScore, setChallengerScore] = useState<string>('')
   const [challengedScore, setChallengedScore] = useState<string>('')
   const [matchDate, setMatchDate] = useState<string>('')
-  const toast = useToast()
+  const { toast } = useToast()
 
   const handleStatusChange = async (challengeId: string, newStatus: string) => {
     setUpdatingId(challengeId)
