@@ -11,6 +11,9 @@ import {
 } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
 
 type ChallengeWithUsers = Challenge & {
   challenger: User
@@ -18,12 +21,16 @@ type ChallengeWithUsers = Challenge & {
 }
 
 type ChallengeManagementProps = {
-  challenges?: ChallengeWithUsers[]
+  challenges: ChallengeWithUsers[]
   onUpdateStatus: (challengeId: string, newStatus: string) => Promise<void>
+  onSubmitScore: (challengeId: string, challengerScore: number, challengedScore: number) => Promise<void>
 }
 
-export default function ChallengeManagement({ challenges = [], onUpdateStatus }: ChallengeManagementProps) {
+export default function ChallengeManagement({ challenges, onUpdateStatus, onSubmitScore }: ChallengeManagementProps) {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [challengerScore, setChallengerScore] = useState<string>('')
+  const [challengedScore, setChallengedScore] = useState<string>('')
+  const { toast } = useToast()
 
   const handleStatusChange = async (challengeId: string, newStatus: string) => {
     setUpdatingId(challengeId)
@@ -33,6 +40,46 @@ export default function ChallengeManagement({ challenges = [], onUpdateStatus }:
       console.error('Failed to update challenge status:', error)
     } finally {
       setUpdatingId(null)
+    }
+  }
+
+  const handleScoreSubmit = async (challengeId: string) => {
+    if (!challengerScore || !challengedScore) {
+      toast({
+        title: "Error",
+        description: "Both scores must be provided",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const challenger = parseInt(challengerScore)
+    const challenged = parseInt(challengedScore)
+
+    if (isNaN(challenger) || isNaN(challenged)) {
+      toast({
+        title: "Error",
+        description: "Scores must be valid numbers",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      await onSubmitScore(challengeId, challenger, challenged)
+      setChallengerScore('')
+      setChallengedScore('')
+      toast({
+        title: "Success",
+        description: "Scores submitted successfully",
+      })
+    } catch (error) {
+      console.error('Failed to submit scores:', error)
+      toast({
+        title: "Error",
+        description: "Failed to submit scores",
+        variant: "destructive",
+      })
     }
   }
 
@@ -67,20 +114,41 @@ export default function ChallengeManagement({ challenges = [], onUpdateStatus }:
               <TableCell>{challenge.challenged.name}</TableCell>
               <TableCell>{getStatusBadge(challenge.status)}</TableCell>
               <TableCell>
-                <Select
-                  defaultValue={challenge.status}
-                  onValueChange={(value) => handleStatusChange(challenge.id, value)}
-                  disabled={updatingId === challenge.id}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="ACCEPTED">Accepted</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                  </SelectContent>
-                </Select>
+                {challenge.status === 'PENDING' && (
+                  <Select
+                    defaultValue={challenge.status}
+                    onValueChange={(value) => handleStatusChange(challenge.id, value)}
+                    disabled={updatingId === challenge.id}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="ACCEPTED">Accepted</SelectItem>
+                      <SelectItem value="COMPLETED">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                {challenge.status === 'ACCEPTED' && (
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      placeholder="Challenger Score"
+                      value={challengerScore}
+                      onChange={(e) => setChallengerScore(e.target.value)}
+                      className="w-24"
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Challenged Score"
+                      value={challengedScore}
+                      onChange={(e) => setChallengedScore(e.target.value)}
+                      className="w-24"
+                    />
+                    <Button onClick={() => handleScoreSubmit(challenge.id)}>Submit</Button>
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))}

@@ -31,6 +31,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Challenger already has an active challenge' }, { status: 400 })
     }
 
+    // Get the challenged player
+    const challenged = await prisma.user.findUnique({
+      where: { id: challengedId },
+    })
+
+    if (!challenger || !challenged) {
+      return NextResponse.json({ error: 'Invalid challenger or challenged player' }, { status: 400 })
+    }
+
+    // Get the max rank difference from config
+    const config = await prisma.config.findFirst()
+    const maxRankDifference = config?.maxRankDifference || 5
+
+    // Check if the rank difference is within the allowed range
+    if (Math.abs(challenger.rank - challenged.rank) > maxRankDifference) {
+      return NextResponse.json({ error: 'Rank difference exceeds the allowed limit' }, { status: 400 })
+    }
+
     // Create the challenge and update the challenger's active challenge
     const challenge = await prisma.$transaction(async (prisma) => {
       const newChallenge = await prisma.challenge.create({

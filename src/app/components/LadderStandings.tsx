@@ -10,6 +10,8 @@ type LadderStandingsProps = {
   players: User[]
   isAdmin: boolean
   currentUserId?: string
+  currentUserRank?: number
+  maxRankDifference?: number
   onChallenge?: (formData: FormData) => Promise<void>
   userHasActiveChallenge: boolean
   onDeletePlayer?: (playerId: string) => Promise<void>
@@ -20,6 +22,8 @@ export default function LadderStandings({
   players: initialPlayers, 
   isAdmin, 
   currentUserId, 
+  currentUserRank,
+  maxRankDifference,
   onChallenge,
   userHasActiveChallenge,
   onDeletePlayer,
@@ -28,7 +32,6 @@ export default function LadderStandings({
   const [players, setPlayers] = useState(initialPlayers)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editRank, setEditRank] = useState<number | null>(null)
-
   const { toast } = useToast()
 
   const handleEdit = (player: User) => {
@@ -96,6 +99,14 @@ export default function LadderStandings({
     }
   }
 
+  const canChallenge = (playerRank: number) => {
+    if (currentUserRank === undefined || maxRankDifference === undefined) {
+      return false
+    }
+    const rankDifference = Math.abs(currentUserRank - playerRank)
+    return rankDifference <= maxRankDifference
+  }
+
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
@@ -144,7 +155,7 @@ export default function LadderStandings({
                       <Button onClick={() => handleEdit(player)} className="mr-2">Edit</Button>
                       <Button onClick={() => handleDelete(player.id)} variant="destructive">Delete</Button>
                     </>
-                  ) : currentUserId && currentUserId !== player.id && onChallenge ? (
+                  ) : currentUserId && currentUserId !== player.id && onChallenge && canChallenge(player.rank) ? (
                     <form onSubmit={(e) => {
                       e.preventDefault();
                       const formData = new FormData(e.target as HTMLFormElement);

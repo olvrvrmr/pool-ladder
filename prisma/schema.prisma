@@ -47,15 +47,22 @@ model Challenge {
 }
 
 model Match {
-  id        String   @id @default(cuid())
-  date      DateTime
-  winner    User     @relation("WinnerMatches", fields: [winnerId], references: [id], onDelete: Cascade)
-  winnerId  String
-  loser     User     @relation("LoserMatches", fields: [loserId], references: [id], onDelete: Cascade)
-  loserId   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  date         DateTime @default(now())
+  winner       User     @relation("WinnerMatches", fields: [winnerId], references: [id], onDelete: Cascade)
+  winnerId     String
+  loser        User     @relation("LoserMatches", fields: [loserId], references: [id], onDelete: Cascade)
+  loserId      String
+  winnerScore  Int
+  loserScore   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([winnerId])
   @@index([loserId])
+}
+
+model Config {
+  id                 Int @id @default(1)
+  maxRankDifference  Int @default(5)
 }

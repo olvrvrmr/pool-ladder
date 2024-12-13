@@ -9,6 +9,8 @@ import { isUserAdmin } from '../utils/user'
 import { revalidatePath } from 'next/cache'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 const prisma = new PrismaClient()
 
@@ -111,6 +113,53 @@ async function updateChallengeStatus(challengeId: string, newStatus: string) {
   }
 }
 
+async function submitChallengeScore(challengeId: string, challengerScore: number, challengedScore: number) {
+  'use server'
+  try {
+    const session = await auth()
+    const token = await session.getToken()
+
+    if (!token) {
+      throw new Error('Not authenticated')
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/challenges/${challengeId}/score`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ challengerScore, challengedScore }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to submit challenge score')
+    }
+
+    revalidatePath('/admin')
+  } catch (error) {
+    console.error('Error submitting challenge score:', error)
+    throw error
+  }
+}
+
+async function updateRankDifference(formData: FormData) {
+  'use server'
+  try {
+    const newDifference = parseInt(formData.get('rankDifference') as string)
+    await prisma.config.upsert({
+      where: { id: 1 },
+      create: { maxRankDifference: newDifference },
+      update: { maxRankDifference: newDifference }
+    })
+    revalidatePath('/admin')
+  } catch (error) {
+    console.error('Failed to update rank difference:', error)
+    throw error
+  }
+}
+
 export default async function AdminPage() {
   const { userId } = await auth()
 
@@ -131,6 +180,7 @@ export default async function AdminPage() {
 
   const players = await getPlayers()
   const challenges = await getChallenges()
+  const config = await prisma.config.findFirst()
 
   return (
     <div className="container mx-auto p-8">
@@ -139,6 +189,7 @@ export default async function AdminPage() {
         <TabsList>
           <TabsTrigger value="players">Players</TabsTrigger>
           <TabsTrigger value="challenges">Challenges</TabsTrigger>
+          <TabsTrigger value="rules">Rules</TabsTrigger>
         </TabsList>
         <TabsContent value="players">
           <div className="grid gap-8 md:grid-cols-2">
@@ -180,10 +231,39 @@ export default async function AdminPage() {
                 <CardTitle>Manage Challenges</CardTitle>
               </CardHeader>
               <CardContent>
-                <ChallengeManagement challenges={challenges} onUpdateStatus={updateChallengeStatus} />
+                <ChallengeManagement 
+                  challenges={challenges} 
+                  onUpdateStatus={updateChallengeStatus}
+                  onSubmitScore={submitChallengeScore}
+                />
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+        <TabsContent value="rules">
+          <Card>
+            <CardHeader>
+              <CardTitle>Configure Rules</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form action={updateRankDifference} className="space-y-4">
+                <div>
+                  <label htmlFor="rankDifference" className="block text-sm font-medium text-gray-700">
+                    Maximum Rank Difference for Challenges
+                  </label>
+                  <Input
+                    type="number"
+                    id="rankDifference"
+                    name="rankDifference"
+                    defaultValue={config?.maxRankDifference || 5}
+                    min="1"
+                    required
+                  />
+                </div>
+                <Button type="submit">Update Rule</Button>
+              </form>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
