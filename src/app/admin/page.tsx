@@ -5,7 +5,7 @@ import LadderStandings from '../components/LadderStandings'
 import ChallengeForm from '../components/ChallengeForm'
 import ChallengeManagement from '../components/ChallengeManagement'
 import { PrismaClient } from '@prisma/client'
-import { getUserByClerkId, isUserAdmin } from '../utils/user'
+import { isUserAdmin } from '../utils/user'
 import { revalidatePath } from 'next/cache'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
