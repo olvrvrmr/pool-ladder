@@ -106,14 +106,6 @@ export default async function Home() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Scheduled Matches</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MatchCalendar initialMatches={scheduledMatches} />
-          </CardContent>
-        </Card>
       </div>
     </div>
   )
