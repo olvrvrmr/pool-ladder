@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  clerkId       String?  @unique
+  name          String
+  email         String?  @unique
+  rank          Int      @default(0)
+  isAdmin       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  wonMatches    Match[]  @relation("WinnerMatches")
+  lostMatches   Match[]  @relation("LoserMatches")
+  sentChallenges     Challenge[] @relation("ChallengerChallenges")
+  receivedChallenges Challenge[] @relation("ChallengedChallenges")
+  activeChallenge    Challenge?  @relation("ActiveChallenge")
+}
+
+model Challenge {
+  id          String   @id @default(cuid())
+  challenger  User     @relation("ChallengerChallenges", fields: [challengerId], references: [id], onDelete: Cascade)
+  challengerId String
+  challenged  User     @relation("ChallengedChallenges", fields: [challengedId], references: [id], onDelete: Cascade)
+  challengedId String
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  activeForUser User?  @relation("ActiveChallenge", fields: [activeForUserId], references: [id], onDelete: SetNull)
+  activeForUserId String? @unique
+
+  @@index([challengerId])
+  @@index([challengedId])
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  date      DateTime
+  winner    User     @relation("WinnerMatches", fields: [winnerId], references: [id], onDelete: Cascade)
+  winnerId  String
+  loser     User     @relation("LoserMatches", fields: [loserId], references: [id], onDelete: Cascade)
+  loserId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([winnerId])
+  @@index([loserId])
+}
