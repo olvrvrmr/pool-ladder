@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
 
 type ChallengeWithUsers = Challenge & {
   challenger: User
@@ -34,38 +36,37 @@ export default function ChallengeManagement({ challenges = [], onUpdateStatus }:
     }
   }
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return <Badge variant="secondary" className="bg-yellow-500 hover:bg-yellow-600">{status}</Badge>
+      case 'ACCEPTED':
+        return <Badge variant="secondary" className="bg-blue-500 hover:bg-blue-600">{status}</Badge>
+      case 'COMPLETED':
+        return <Badge variant="secondary" className="bg-green-500 hover:bg-green-600">{status}</Badge>
+      default:
+        return <Badge variant="secondary">{status}</Badge>
+    }
+  }
+
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Challenger
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Challenged
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {challenges?.map((challenge) => (
-            <tr key={challenge.id}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {challenge.challenger.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {challenge.challenged.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {challenge.status}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Challenger</TableHead>
+            <TableHead>Challenged</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {challenges.map((challenge) => (
+            <TableRow key={challenge.id}>
+              <TableCell>{challenge.challenger.name}</TableCell>
+              <TableCell>{challenge.challenged.name}</TableCell>
+              <TableCell>{getStatusBadge(challenge.status)}</TableCell>
+              <TableCell>
                 <Select
                   defaultValue={challenge.status}
                   onValueChange={(value) => handleStatusChange(challenge.id, value)}
@@ -80,11 +81,11 @@ export default function ChallengeManagement({ challenges = [], onUpdateStatus }:
                     <SelectItem value="COMPLETED">Completed</SelectItem>
                   </SelectContent>
                 </Select>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

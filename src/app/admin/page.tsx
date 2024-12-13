@@ -7,6 +7,8 @@ import ChallengeManagement from '../components/ChallengeManagement'
 import { PrismaClient } from '@prisma/client'
 import { getUserByClerkId, isUserAdmin } from '../utils/user'
 import { revalidatePath } from 'next/cache'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const prisma = new PrismaClient()
 
@@ -131,29 +133,59 @@ export default async function AdminPage() {
   const challenges = await getChallenges()
 
   return (
-    <div className="p-8">
+    <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8">Admin Panel</h1>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Add New Player</h2>
-        <AddPlayerForm />
-      </div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Create Challenge</h2>
-        <ChallengeForm players={players} onChallenge={createChallenge} />
-      </div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Manage Challenges</h2>
-        <ChallengeManagement challenges={challenges} onUpdateStatus={updateChallengeStatus} />
-      </div>
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Current Standings</h2>
-        <LadderStandings 
-          players={players} 
-          isAdmin={true}
-          userHasActiveChallenge={false}
-          onDeletePlayer={deletePlayer}
-        />
-      </div>
+      <Tabs defaultValue="players" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="players">Players</TabsTrigger>
+          <TabsTrigger value="challenges">Challenges</TabsTrigger>
+        </TabsList>
+        <TabsContent value="players">
+          <div className="grid gap-8 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add New Player</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <AddPlayerForm />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Current Standings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LadderStandings 
+                  players={players} 
+                  isAdmin={true}
+                  userHasActiveChallenge={false}
+                  onDeletePlayer={deletePlayer}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        <TabsContent value="challenges">
+          <div className="grid gap-8 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create Challenge</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChallengeForm players={players} onChallenge={createChallenge} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Manage Challenges</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChallengeManagement challenges={challenges} onUpdateStatus={updateChallengeStatus} />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
