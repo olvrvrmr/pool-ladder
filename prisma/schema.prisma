@@ -37,6 +37,7 @@ model Challenge {
   challenged  User     @relation("ChallengedChallenges", fields: [challengedId], references: [id], onDelete: Cascade)
   challengedId String
   status      String   @default("PENDING")
+  matchDate   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   activeForUser User?  @relation("ActiveChallenge", fields: [activeForUserId], references: [id], onDelete: SetNull)

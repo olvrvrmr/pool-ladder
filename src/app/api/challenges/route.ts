@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const { challengerId, challengedId } = await request.json()
+  const { challengerId, challengedId, matchDate } = await request.json()
 
   try {
     // Check if the challenger already has an active challenge
@@ -56,6 +56,7 @@ export async function POST(request: Request) {
           challengerId,
           challengedId,
           status: 'PENDING',
+          matchDate: matchDate ? new Date(matchDate) : null,
         },
       })
 

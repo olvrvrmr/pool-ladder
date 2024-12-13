@@ -144,15 +144,45 @@ async function submitChallengeScore(challengeId: string, challengerScore: number
   }
 }
 
-async function updateRankDifference(formData: FormData) {
+async function updateMatchDate(challengeId: string, newDate: string | null) {
   'use server'
   try {
-    const newDifference = parseInt(formData.get('rankDifference') as string)
-    await prisma.config.upsert({
-      where: { id: 1 },
-      create: { maxRankDifference: newDifference },
-      update: { maxRankDifference: newDifference }
+    const session = await auth()
+    const token = await session.getToken()
+
+    if (!token) {
+      throw new Error('Not authenticated')
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/challenges/${challengeId}/date`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ matchDate: newDate }),
     })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to update match date')
+    }
+
+    revalidatePath('/admin')
+  } catch (error) {
+    console.error('Error updating match date:', error)
+    throw error
+  }
+}
+
+async function updateRankDifference(newDifference: number) {
+  'use server'
+  try {
+    await prisma.config.update({
+      where: { id: 1 },
+      data: { maxRankDifference: newDifference },
+    })
+
     revalidatePath('/admin')
   } catch (error) {
     console.error('Failed to update rank difference:', error)
@@ -235,6 +265,7 @@ export default async function AdminPage() {
                   challenges={challenges} 
                   onUpdateStatus={updateChallengeStatus}
                   onSubmitScore={submitChallengeScore}
+                  onUpdateMatchDate={updateMatchDate}
                 />
               </CardContent>
             </Card>

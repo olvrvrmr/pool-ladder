@@ -24,13 +24,15 @@ type ChallengeManagementProps = {
   challenges: ChallengeWithUsers[]
   onUpdateStatus: (challengeId: string, newStatus: string) => Promise<void>
   onSubmitScore: (challengeId: string, challengerScore: number, challengedScore: number) => Promise<void>
+  onUpdateMatchDate: (challengeId: string, newDate: string | null) => Promise<void>
 }
 
-export default function ChallengeManagement({ challenges, onUpdateStatus, onSubmitScore }: ChallengeManagementProps) {
+export default function ChallengeManagement({ challenges, onUpdateStatus, onSubmitScore, onUpdateMatchDate }: ChallengeManagementProps) {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [challengerScore, setChallengerScore] = useState<string>('')
   const [challengedScore, setChallengedScore] = useState<string>('')
-  const { toast } = useToast()
+  const [matchDate, setMatchDate] = useState<string>('')
+  const toast = useToast()
 
   const handleStatusChange = async (challengeId: string, newStatus: string) => {
     setUpdatingId(challengeId)
@@ -83,6 +85,24 @@ export default function ChallengeManagement({ challenges, onUpdateStatus, onSubm
     }
   }
 
+  const handleDateChange = async (challengeId: string, newDate: string) => {
+    try {
+      const formattedDate = newDate ? new Date(newDate).toISOString() : null;
+      await onUpdateMatchDate(challengeId, formattedDate);
+      toast({
+        title: "Success",
+        description: "Match date updated successfully",
+      });
+    } catch (error) {
+      console.error('Failed to update match date:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update match date",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
@@ -104,6 +124,7 @@ export default function ChallengeManagement({ challenges, onUpdateStatus, onSubm
             <TableHead>Challenger</TableHead>
             <TableHead>Challenged</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Match Date</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -113,6 +134,14 @@ export default function ChallengeManagement({ challenges, onUpdateStatus, onSubm
               <TableCell>{challenge.challenger.name}</TableCell>
               <TableCell>{challenge.challenged.name}</TableCell>
               <TableCell>{getStatusBadge(challenge.status)}</TableCell>
+              <TableCell>
+                <Input
+                  type="datetime-local"
+                  value={challenge.matchDate ? new Date(challenge.matchDate).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => handleDateChange(challenge.id, e.target.value)}
+                  className="w-full"
+                />
+              </TableCell>
               <TableCell>
                 {challenge.status === 'PENDING' && (
                   <Select
